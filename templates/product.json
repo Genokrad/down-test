@@ -238,7 +238,7 @@
         "show_featured_products": true,
         "limit": 2,
         "title": "Featured products",
-        "one_time_show": true,
+        "one_time_show": false,
         "products": [
 
         ]
