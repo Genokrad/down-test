@@ -240,7 +240,9 @@
         "title": "Featured products",
         "one_time_show": false,
         "products": [
-
+          "classic-varsity-top",
+          "floral-white-top",
+          "dark-denim-top"
         ]
       }
     }
