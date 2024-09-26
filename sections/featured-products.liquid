@@ -36,7 +36,7 @@
             </div>
             <ul class="upsell-products-list">
               {% for product in recommendations.products %}
-                <li class="upsell-products-item">
+                <li class="upsell-products-item" data-variant-id="{{ product.first_available_variant.id }}">
                   <img
                     class="upsell-product-image"
                     width="100%"
