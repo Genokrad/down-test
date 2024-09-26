@@ -1,61 +1,130 @@
 {{ 'test-modal.css' | asset_url | stylesheet_tag }}
+{% assign products = section.settings.products %}
+
 {% if section.settings.show_featured_products == true %}
-  <div id="featured-products" data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ section.settings.limit }}">
+  <div
+    id="featured-products"
+    data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ section.settings.limit }}"
+    data-one-time-show-modal="{{ section.settings.one_time_show }}">
     {% if recommendations.performed and recommendations.products_count > 0 %}
       <section id="product-recommendations" class="upsell-modal">
         <div class="modal">
           <div>
-            <img
-              class="modal-image"
-              width="100%"
-              height="100%"
-              src="{{ product.featured_image | image_url }}"
-              alt="{{ product.title }}">
+            {% if product.featured_image != blank %}
+              <img
+                class="modal-image"
+                width="100%"
+                height="100%"
+                src="{{ product.featured_image | image_url }}"
+                alt="{{ product.title }}">
+            {% else %}
+              {{ 'detailed-apparel-1' | placeholder_svg_tag: 'placeholder-svg' }}
+            {% endif %}
           </div>
           <div class="modal-content">
             <div class="modal-text-wrapper">
               <div class="some-wrapper">
-                <h2 class="modal-header">COMPLETE YOUR PURCHASE</h2>
+                {% if section.settings.title != blank %}
+                  <h2 class="modal-header">{{ section.settings.title }}</h2>
+                {% endif %}
                 <div class="modal-close">
                   {% render 'icon-plus' %}
                 </div>
               </div>
-              <p class="modal-text">
-                <span>
+              <div class="modal-text">
+                <p style="margin: 0;">
                   You are trying to add
                   <span class="modal-bolded-text">
                     {{ product.title }}
                   </span>
                   to the cart.
-                </span>
-                <span>Complete your look and save
-                  <span class="upsell-product-price">$13!</span>
-                </span>
+                </p>
+                {% liquid
+                  assign discountPrice = 0
+                  assign price = 0
+                  if products != blank
+                    for productItem in products
+                      if productItem.compare_at_price != blank
+                        assign discountPrice = discountPrice | plus: productItem.compare_at_price | minus: productItem.price
+                        assign price = price | plus: productItem.price
+                      endif
+                    endfor
+                  else
+                    for productItem in recommendations.products
+                      if productItem.compare_at_price != blank
+                        assign discountPrice = discountPrice | plus: productItem.compare_at_price | minus: productItem.price
+                        assign price = price | plus: productItem.price
+                      endif
+                    endfor
+                  endif
 
-              </p>
+                  if discountPrice < 0
+                    assign value = discountPrice | times: -1
+                  endif
+                %}
+                {% if value != price %}
+                  <p style="margin: 0;">Complete your look and save
+                    <span class="upsell-product-price">
+                      {{ discountPrice | money }}!
+                    </span>
+                  </p>
+                {% endif %}
+              </div>
             </div>
             <ul class="upsell-products-list">
-              {% for product in recommendations.products %}
-                <li class="upsell-products-item" data-variant-id="{{ product.first_available_variant.id }}">
-                  <img
-                    class="upsell-product-image"
-                    width="100%"
-                    height="100%"
-                    src="{{ product.featured_image | image_url }}"
-                    alt="{{ product.title }}">
-                  <div class="upsell-products-text-wrapper">
-                    <div>
-                      <h3 class="upsell-products-title">{{ product.title }}</h3>
-                      <p class="upsell-products-description">{{ product.description | strip_html | truncate: 50 }}</p>
+              {% if products != blank %}
+                {% for productItem in products %}
+                  <li class="upsell-products-item" data-variant-id="{{ productItem.first_available_variant.id }}">
+                    <img
+                      class="upsell-product-image"
+                      width="100%"
+                      height="100%"
+                      src="{{ productItem.featured_image | image_url }}"
+                      alt="{{ productItem.title }}">
+                    <div class="upsell-products-text-wrapper">
+                      <div>
+                        <h3 class="upsell-products-title">{{ productItem.title }}</h3>
+                        <p class="upsell-products-description">{{ productItem.description | strip_html | truncate: 50 }}</p>
+                      </div>
+                      <p class="upsell-products-info">SKU: {{ productItem.id }}</p>
+                      <p class="upsell-product-price">
+                        {% if productItem.price < productItem.compare_at_price %}
+                          <ins>{{ productItem.price | money }}</ins>
+                          <del class="upsell-product-compared">{{ productItem.compare_at_price | money }}</del>
+                        {% else %}
+                          <div>{{ productItem.price | money }}</div>
+                        {% endif %}
+                      </p>
                     </div>
-                    <p class="upsell-products-info">SKU: {{ product.id }}</p>
-                    <p class="upsell-product-price">
-                      <span>{{ product.price | money }}</span>
-                      <span class="upsell-product-compared">{{ product.compare_at_price | money }}</span>
-                    </p>
-                  </div>
-                </li>
-              {% endfor %}
+                  </li>
+                {% endfor %}
+              {% else %}
+                {% for productItem in recommendations.products %}
+                  <li class="upsell-products-item" data-variant-id="{{ productItem.first_available_variant.id }}">
+                    <img
+                      class="upsell-product-image"
+                      width="100%"
+                      height="100%"
+                      src="{{ productItem.featured_image | image_url }}"
+                      alt="{{ productItem.title }}">
+                    <div class="upsell-products-text-wrapper">
+                      <div>
+                        <h3 class="upsell-products-title">{{ productItem.title }}</h3>
+                        <p class="upsell-products-description">{{ productItem.description | strip_html | truncate: 50 }}</p>
+                      </div>
+                      <p class="upsell-products-info">SKU: {{ product.id }}</p>
+                      <p class="upsell-product-price">
+                        {% if productItem.price < productItem.compare_at_price %}
+                          <span>{{ productItem.price | money }}</span>
+                          <del class="upsell-product-compared">{{ productItem.compare_at_price | money }}</del>
+                        {% else %}
+                          <span>{{ productItem.price | money }}</span>
+                        {% endif %}
+                      </p>
+                    </div>
+                  </li>
+                {% endfor %}
+              {% endif %}
             </ul>
             <div class="modal-button-wrapper">
               <button class="modal-button modal-button--add">Add to cart</button>
@@ -77,7 +146,8 @@
         "id": "show_featured_products",
         "label": "Show featured products",
         "default": true
-      }, {
+      },
+      {
         "type": "range",
         "id": "limit",
         "label": "Number of products to show",
@@ -85,6 +155,22 @@
         "max": 10,
         "step": 1,
         "default": 2
+      },
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Title",
+        "default": "Featured products"
+      },
+      {
+        "type": "checkbox",
+        "id": "one_time_show",
+        "label": "Show only once",
+        "default": true
+      }, {
+        "type": "product_list",
+        "id": "products",
+        "label": "Products"
       }
     ],
     "presets": [

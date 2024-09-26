@@ -14,11 +14,13 @@ if (!customElements.get('product-form')) {
         if (document.querySelector('cart-drawer')) this.submitButton.setAttribute('aria-haspopup', 'dialog');
 
         this.hideErrors = this.dataset.hideErrors === 'true';
+        this.times = 0;
       }
 
       onSubmitHandler(evt) {
         evt.preventDefault();
         const modalSection = document.querySelector('#featured-products')
+        const timesToShowModal = modalSection.getAttribute('data-one-time-show-modal');
 
         const addAditionalProducts = async (modal) => {
           const productsArr = Array.from(modal.querySelectorAll('[data-variant-id]'));
@@ -42,7 +44,6 @@ if (!customElements.get('product-form')) {
               });
         
               const data = await response.json();
-              console.log(data);
             } catch (error) {
               console.error('Error:', error);
             }
@@ -54,8 +55,11 @@ if (!customElements.get('product-form')) {
 
         const getModal = () => {
           const url = modalSection.getAttribute('data-url');
-  
-          console.log(url);
+          this.times++;
+
+          if (timesToShowModal === 'true') {
+            sessionStorage.setItem('showModal', 'false');
+          }
   
           fetch(url)
           .then((response) => response.text())
@@ -69,13 +73,18 @@ if (!customElements.get('product-form')) {
           .then((modal) => {
             const continueButton = modal.querySelector('.modal-button--continue');
             const addButton = modal.querySelector('.modal-button--add');
+            const closeModal = modal.querySelector('.modal-close');
+            
             continueButton.addEventListener('click', () => {
               addToCart();
-              section.removeChild(modal);
+              modalSection.removeChild(modal);
             });
 
             addButton.addEventListener('click', () => {
               addAditionalProducts(modal);
+            });
+            closeModal.addEventListener('click', () => {
+              modalSection.removeChild(modal);
             });
           })
           .catch((error) => {
@@ -168,7 +177,11 @@ if (!customElements.get('product-form')) {
         if (!modalSection) {
           addToCart();
         } else {
-          getModal();
+          if (sessionStorage.getItem('showModal') === 'false') {
+            addToCart();
+          } else {
+            getModal();
+          }
         }
       }
 
