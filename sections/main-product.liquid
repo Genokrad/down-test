@@ -9,6 +9,7 @@
   {{ 'component-slider.css' | asset_url | stylesheet_tag }}
   {{ 'component-rating.css' | asset_url | stylesheet_tag }}
   {{ 'component-deferred-media.css' | asset_url | stylesheet_tag }}
+  {% comment %} {{ 'test-modal.css' | asset_url | stylesheet_tag }} {% endcomment %}
   {% unless product.has_only_default_variant %}
     {{ 'component-product-variant-picker.css' | asset_url | stylesheet_tag }}
     {{ 'component-swatch-input.css' | asset_url | stylesheet_tag }}
@@ -643,6 +644,7 @@
           </a>
         </product-info>
       </div>
+      {% comment %} {% render 'test-modal' %} {% endcomment %}
     </div>
 
     {% render 'product-media-modal', variant_images: variant_images %}

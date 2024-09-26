@@ -1,0 +1,97 @@
+{{ 'test-modal.css' | asset_url | stylesheet_tag }}
+{% if section.settings.show_featured_products == true %}
+  <div id="featured-products" data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ section.settings.limit }}">
+    {% if recommendations.performed and recommendations.products_count > 0 %}
+      <section id="product-recommendations" class="upsell-modal">
+        <div class="modal">
+          <div>
+            <img
+              class="modal-image"
+              width="100%"
+              height="100%"
+              src="{{ product.featured_image | image_url }}"
+              alt="{{ product.title }}">
+          </div>
+          <div class="modal-content">
+            <div class="modal-text-wrapper">
+              <div class="some-wrapper">
+                <h2 class="modal-header">COMPLETE YOUR PURCHASE</h2>
+                <div class="modal-close">
+                  {% render 'icon-plus' %}
+                </div>
+              </div>
+              <p class="modal-text">
+                <span>
+                  You are trying to add
+                  <span class="modal-bolded-text">
+                    {{ product.title }}
+                  </span>
+                  to the cart.
+                </span>
+                <span>Complete your look and save
+                  <span class="upsell-product-price">$13!</span>
+                </span>
+
+              </p>
+            </div>
+            <ul class="upsell-products-list">
+              {% for product in recommendations.products %}
+                <li class="upsell-products-item">
+                  <img
+                    class="upsell-product-image"
+                    width="100%"
+                    height="100%"
+                    src="{{ product.featured_image | image_url }}"
+                    alt="{{ product.title }}">
+                  <div class="upsell-products-text-wrapper">
+                    <div>
+                      <h3 class="upsell-products-title">{{ product.title }}</h3>
+                      <p class="upsell-products-description">{{ product.description | strip_html | truncate: 50 }}</p>
+                    </div>
+                    <p class="upsell-products-info">SKU: {{ product.id }}</p>
+                    <p class="upsell-product-price">
+                      <span>{{ product.price | money }}</span>
+                      <span class="upsell-product-compared">{{ product.compare_at_price | money }}</span>
+                    </p>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+            <div class="modal-button-wrapper">
+              <button class="modal-button modal-button--add">Add to cart</button>
+              <button class="modal-button modal-button--continue">Continue to the Cart</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    {%- endif -%}
+  </div>
+{% endif %}
+
+{% schema %}
+  {
+    "name": "Featured products",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_featured_products",
+        "label": "Show featured products",
+        "default": true
+      }, {
+        "type": "range",
+        "id": "limit",
+        "label": "Number of products to show",
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "default": 2
+      }
+    ],
+    "presets": [
+      {
+        "category": "Product",
+        "name": "Featured products"
+      }
+    ]
+  }
+{% endschema %}
